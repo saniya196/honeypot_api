@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
+from mangum import Mangum
 
 app = FastAPI()
 
@@ -20,3 +21,6 @@ def honeypot(data: Message, x_api_key: str = Header(None)):
         "reply": "Hello, can you explain more?",
         "session_id": data.session_id
     }
+
+# Vercel handler
+handler = Mangum(app)
