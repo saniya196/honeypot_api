@@ -1,39 +1,33 @@
 from flask import Flask, request, jsonify
-import os
-import time
+import os, time
 
 app = Flask(__name__)
-
 API_KEY = "mysecret123"
 
-@app.route("/honeypot", methods=["POST"])
+@app.route("/honeypot", methods=["POST", "GET"])
 def honeypot():
+    # accept both header styles
     key = request.headers.get("x-api-key") or request.headers.get("X-API-KEY")
+
     if key != API_KEY:
         return jsonify({
-            "success": False,
+            "ok": False,
             "error": "Unauthorized"
         }), 401
 
-    # Tester always sends JSON
+    # accept any body (json or not)
     try:
-        body = request.get_json(force=True)
+        data = request.get_json(force=True, silent=True)
     except:
-        return jsonify({
-            "success": False,
-            "error": "Invalid JSON"
-        }), 400
+        data = None
 
-    response = {
-        "success": True,
-        "service": "honeypot",
-        "status": "active",
-        "timestamp": int(time.time()),
+    return jsonify({
+        "ok": True,
+        "status": "honeypot_active",
+        "time": int(time.time()),
         "client_ip": request.remote_addr,
-        "received": body
-    }
-
-    return jsonify(response), 200
+        "data": data
+    }), 200
 
 
 if __name__ == "__main__":
