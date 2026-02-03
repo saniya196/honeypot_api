@@ -21,6 +21,6 @@ def honeypot(data: Message, x_api_key: str = Header(None)):
         "reply": "Hello, can you explain more?",
         "session_id": data.session_id
     }
-
+handler = Mangum(app, lifespan="off")
 # Vercel handler
-handler = Mangum(app)
+
