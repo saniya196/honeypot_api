@@ -1,26 +1,19 @@
-from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel
-from mangum import Mangum
+from flask import Flask, request, jsonify
 
-app = FastAPI()
+app = Flask(__name__)
+API_KEY = "mysecret123"
 
-API_KEY = "mysecretkey123"
+@app.route("/honeypot", methods=["GET"])
+def honeypot():
+    key = request.headers.get("X-API-KEY")
+    if key != API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
 
-class Message(BaseModel):
-    session_id: str
-    message: str
+    return jsonify({
+        "status": "triggered",
+        "message": "Honeypot accessed",
+        "ip": request.remote_addr
+    })
 
-@app.post("/honeypot")
-def honeypot(data: Message, x_api_key: str = Header(None)):
-    if x_api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-
-    return {
-        "scam_detected": False,
-        "status": "ok",
-        "reply": "Hello, can you explain more?",
-        "session_id": data.session_id
-    }
-handler = Mangum(app, lifespan="off")
-# Vercel handler
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
